@@ -23,4 +23,4 @@ static const int blurRadius=5;
 /*Set pixelation radius*/
 static const int pixelSize=0;
 /* time in seconds before the monitor shuts down */
-static const int monitortime = 3;
+static const int monitortime = 60;
