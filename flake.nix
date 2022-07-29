@@ -14,6 +14,7 @@
 	    src = builtins.path { path = ./.; name = "st"; };
 	    buildInputs = oldAttrs.buildInputs ++ [
         prev.xorg.libXrandr.dev
+        prev.xorg.libxext.dev
         prev.imlib2
 	    ];
 	  });
