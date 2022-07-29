@@ -13,7 +13,7 @@
 	    version = "main";
 	    src = builtins.path { path = ./.; name = "st"; };
 	    buildInputs = oldAttrs.buildInputs ++ [
-        prev.xrandr
+        prev.arandr
         prev.imlib2
 	    ];
 	  });
