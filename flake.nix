@@ -14,7 +14,7 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
       overlay = final: prev: {
-        slock = prev.st.overrideAttrs (oldAttrs: rec {
+        slock = prev.slock.overrideAttrs (oldAttrs: rec {
           version = "main";
           src = builtins.path {
             path = ./.;
@@ -26,6 +26,7 @@
               prev.pkg-config
               prev.xorg.libXrandr.dev
               prev.xorg.libXext.dev
+              prev.glib.dev
               prev.imlib2
             ];
         });
