@@ -6,38 +6,36 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs =
-    { self
-    , nixpkgs
-    , flake-utils
-    ,
-    }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+  }:
+    flake-utils.lib.eachDefaultSystem (
+      system: let
         pkgs = import nixpkgs {
           inherit system;
           overlays = [
             (final: prev: {
               slockMX = prev.slock.overrideAttrs (oldAttrs: rec {
-				src = builtins.path {
-					path = ./.;
-					name = "slockMX";
-				};
-                buildInputs = 
-					oldAttrs.buildInputs
-					++ [
-						prev.imlib2
-						prev.pkg-config
-						prev.xorg.libXrandr.dev
-						prev.xorg.libXext.dev
-						prev.glib.dev
-					];
+                src = builtins.path {
+                  path = ./.;
+                  name = "slockMX";
+                };
+                buildInputs =
+                  oldAttrs.buildInputs
+                  ++ [
+                    prev.imlib2
+                    prev.pkg-config
+                    prev.xorg.libXrandr.dev
+                    prev.xorg.libXext.dev
+                    prev.glib.dev
+                  ];
               });
             })
           ];
         };
-      in
-      rec {
+      in rec {
         apps = {
           slock = {
             type = "app";
@@ -50,8 +48,18 @@
         defaultPackage = pkgs.slockMX;
 
         devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [ xorg.libXrandr.dev xorg.libXext.dev glib.dev gcc pkgconfig imlib2 ];
+          buildInputs = with pkgs; [xorg.libXrandr.dev xorg.libXext.dev glib.dev gcc pkgconfig imlib2];
         };
+
+        overlays.default = overlays;
+        checks.${system}.build =
+          (
+            import nixpkgs {
+              inherit system;
+              overlays = [overlays];
+            }
+          )
+          .slockMX;
       }
     );
 }
