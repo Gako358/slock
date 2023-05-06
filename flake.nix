@@ -17,10 +17,10 @@
           inherit system;
           overlays = [
             (final: prev: {
-              slockMX = prev.slock.overrideAttrs (oldAttrs: rec {
+              slock = prev.slock.overrideAttrs (oldAttrs: rec {
                 src = builtins.path {
                   path = ./.;
-                  name = "slockMX";
+                  name = "slock";
                 };
                 buildInputs =
                   oldAttrs.buildInputs
@@ -43,9 +43,9 @@
           };
         };
 
-        packages.slockMX = pkgs.slockMX;
+        packages.slock = pkgs.slock;
         defaultApp = apps.st;
-        defaultPackage = pkgs.slockMX;
+        defaultPackage = pkgs.slock;
 
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [xorg.libXrandr.dev xorg.libXext.dev glib.dev gcc pkgconfig imlib2];
@@ -59,7 +59,7 @@
               overlays = [overlays];
             }
           )
-          .slockMX;
+          .slock;
       }
     );
 }
