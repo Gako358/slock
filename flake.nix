@@ -11,55 +11,46 @@
     nixpkgs,
     flake-utils,
   }: let
-    mkOverlay = system: final: prev: {
-      slock = prev.slock.overrideAttrs (old: {
+    overlay = final: prev: {
+      slock = prev.slock.overrideAttrs (oldAttrs: rec {
         src = builtins.path {
           path = ./.;
           name = "slock";
         };
         buildInputs =
-          old.buildInputs
+          oldAttrs.buildInputs
           ++ [
             prev.imlib2
             prev.pkg-config
-            prev.xorg.libXrandr.dev
-            prev.xorg.libXext.dev
-            prev.glib.dev
+            prev.xorg.libXrandr
+            prev.xorg.libXext
           ];
       });
     };
   in
-    flake-utils.lib.eachDefaultSystem (
+    flake-utils.lib.eachDefaultSystem
+    (
       system: let
-        overlay = mkOverlay system;
         pkgs = import nixpkgs {
           inherit system;
-          overlays = [overlay];
-        };
-      in rec {
-        apps = {
-          slock = {
-            type = "app";
-            program = "${defaultPackage}/bin/slock";
-          };
-        };
-
-        devShell = pkgs.mkShell {
-          name = "slock-dev";
-          packages = with pkgs; [
-            gcc
-            pkg-config
-            xorg.libXrandr
-            xorg.libXext
-            imlib2
+          overlays = [
+            self.overlays.default
           ];
         };
-
+      in rec {
         packages.slock = pkgs.slock;
-        defaultApp = apps.slock;
-        defaultPackage = packages.slock;
-        overlays.default = overlay;
+        packages.default = pkgs.slock;
+        devShells.default = pkgs.mkShell {
+          buildInputs = with pkgs; [
+            gcc
+            pkgconfig
+            imlib2
+            xorg.libX11
+            xorg.libXft
+            xorg.libXinerama
+          ];
+        };
       }
-    );
+    )
+    // {overlays.default = overlay;};
 }
-
