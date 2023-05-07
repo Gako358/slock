@@ -3,51 +3,68 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = {
     self,
     nixpkgs,
-  }: let
-    system = "x86_64-linux";
-    pkgs = import nixpkgs {inherit system;};
-    overlay = final: prev: {
-      slock = prev.slock.overrideAttrs (oldAttrs: rec {
-        version = "main";
-        src = builtins.path {
-          path = ./.;
-          name = "slock";
-        };
-        buildInputs =
-          oldAttrs.buildInputs
-          ++ [
-            prev.pkg-config
-            prev.xorg.libXrandr.dev
-            prev.xorg.libXext.dev
-            prev.glib.dev
-            prev.imlib2
-          ];
-      });
-    };
-  in rec {
-    devShells.x86_64-linux.default = pkgs.mkShell {
-      name = "slock-dev";
-      packages = with pkgs; [
-        gcc
-        pkg-config
-        xorg.libXrandr
-        xorg.libXext
-        imlib2
-      ];
-    };
-    overlays.default = overlay;
-    checks.${system}.build =
-      (
-        import nixpkgs {
+    flake-utils,
+  }:
+    flake-utils.lib.eachDefaultSystem (
+      system: let
+        pkgs = import nixpkgs {
           inherit system;
-          overlays = [overlay];
-        }
-      )
-      .slock;
-  };
+          overlays = [
+            (final: prev: {
+              slock = prev.slock.overrideAttrs (old: {
+                src = builtins.path {
+                  path = ./.;
+                  name = "slock";
+                };
+                buildInputs =
+                  old.buildInputs
+                  ++ [
+                    prev.imlib2
+                    prev.pkg-config
+                    prev.xorg.libXrandr.dev
+                    prev.xorg.libXext.dev
+                    prev.glib.dev
+                  ];
+              });
+            })
+          ];
+        };
+
+        overlay = final: prev: {
+          slock = prev.slock;
+        };
+      in rec {
+        apps = {
+          slock = {
+            type = "app";
+            program = "${defaultPackage}/bin/slock";
+          };
+        };
+
+        devShell = pkgs.mkShell {
+          name = "slock-dev";
+          packages = with pkgs; [
+            gcc
+            pkg-config
+            xorg.libXrandr
+            xorg.libXext
+            imlib2
+          ];
+        };
+
+        packages.slock = pkgs.slock;
+        defaultApp = apps.slock;
+        defaultPackage = packages.slock;
+
+        overlays = {
+          default = overlay;
+        };
+      }
+    );
 }
